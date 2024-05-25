@@ -1,5 +1,12 @@
 const User = require('../model/userModel');
 const bcrypt = require('bcrypt');
+const multer = require('multer');
+
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
+
+module.exports.uploadAvatar = upload.single('avatar');
+
 
 module.exports.register = async (req, res, next ) =>{
     try{
@@ -41,14 +48,25 @@ module.exports.login = async (req, res, next ) =>{
     }
 };
 
-module.exports.setAvatar = async ( req, res, next ) => {
-    try{
+module.exports.setAvatar = async (req, res, next) => {
+    try {
         const userId = req.params.id;
-        const avatarImage = req.body.image;
-        const userData = await User.findByIdAndUpdate(userId, {isAvatarImageSet: true, avatarImage});
-        return res.json({isSet: userData.isAvatarImageSet, image: userData.avatarImage});
-    } catch(err){
-        next(err);
+        if (!req.file) {
+            return res.status(400).json({ error: 'No file uploaded.' });
+        }
+
+        const avatarImage = req.file.buffer.toString('base64');        
+        const userData = await User.findByIdAndUpdate(userId, { isAvatarImageSet: true, avatarImage }, { new: true });
+
+        if (!userData) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        // Return the updated user data
+        return res.json({ isSet: userData.isAvatarImageSet, image: userData.avatarImage });
+    } catch (err) {
+        console.error('Error setting avatar:', err);
+        return res.status(500).json({ error: 'Internal server error' });
     }
 };
 

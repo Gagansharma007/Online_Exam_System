@@ -48,7 +48,7 @@ const Login = () => {
               toast.error(data.msg, toastOptions);
             }
             if (data.status === true) {
-              localStorage.setItem('chat-app-user', JSON.stringify(data.user));
+              localStorage.setItem('online-exam-system', JSON.stringify(data.user));
               navigate('/');
             }
           }
