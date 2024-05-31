@@ -1,22 +1,41 @@
 import React from 'react';
-import { Card, CardContent, CardActions, Typography, Button } from '@mui/material';
+import { Card, CardContent, Typography, Button } from '@mui/material';
+import { Link } from 'react-router-dom';
+import PropTypes from 'prop-types';
 
-const TestCard = ({ subjectName, description }) => {
+const TestCard = ({ test }) => {
   return (
-    <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-      <CardContent sx={{ flexGrow: 1 }}>
-        <Typography variant="h5" component="div">
-          {subjectName} Test
+    <Card>
+      <CardContent>
+        <Typography variant="h5" gutterBottom>
+          {test.title}
         </Typography>
-        <Typography variant="body2" color="text.secondary">
-          {description}
+        <Typography color="textSecondary">
+          Subject: {test.subject}
         </Typography>
+        <Typography color="textSecondary">
+          Time Limit: {test.timeLimit} minutes
+        </Typography>
+        <Button
+          variant="contained"
+          color="primary"
+          component={Link}
+          to={`/starttest/${test._id}`}
+        >
+          Start Test
+        </Button>
       </CardContent>
-      <CardActions>
-        <Button size="small">Take Test</Button>
-      </CardActions>
     </Card>
   );
+};
+
+TestCard.propTypes = {
+  test: PropTypes.shape({
+    _id: PropTypes.string.isRequired,
+    title: PropTypes.string.isRequired,
+    subject: PropTypes.string.isRequired,
+    timeLimit: PropTypes.number.isRequired,
+  }).isRequired,
 };
 
 export default TestCard;
