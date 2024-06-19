@@ -50,7 +50,6 @@ const CreateTest = () => {
         timeLimit,
         questions,
       });
-      console.log(response);
       navigate('/success');
     } catch (error) {
       console.error('Error creating test:', error);

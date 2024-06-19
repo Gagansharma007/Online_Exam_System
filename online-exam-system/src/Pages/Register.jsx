@@ -1,64 +1,55 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Container, Box, Typography, TextField, Button } from '@mui/material';
-import axios from 'axios';
+import { Typography , Box, Button , Container, TextField, CircularProgress } from '@mui/material';
 import { toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-import { registerRoute } from '../Utils/APIRoutes.js';
+import { useDispatch, useSelector } from 'react-redux';
+import { useRegisterMutation } from '../Slices/userApiSlice';
+import { setCredentials } from '../Slices/authSlice';
 
 const Register = () => {
     const navigate = useNavigate();
-    const [values, setValues] = useState({
-        username: "",
+    const dispatch = useDispatch();
+    const { userInfo } = useSelector(state => state.auth );
+    const [ values , setValues ] = useState({
+        username : "",
         email: "",
         password: "",
         confirmPassword: ""
     });
-
-    const handleChange = (event) => {
-        setValues({ ...values, [event.target.name]: event.target.value });
-    };
-
-    const handleSubmit = async (event) => {
-        event.preventDefault();
-        
-        const { username, email, password, confirmPassword } = values;
-
-        if (!username || !email || !password || !confirmPassword) {
-            toast.error("Please fill in all fields.");
+    useEffect(()=>{
+        if( userInfo ){
+            navigate('/');
+        }
+    },[ navigate, userInfo ]);
+    const [ register , { isLoading }] = useRegisterMutation();
+    const handleChange = (e)=>{
+        setValues({...values, [e.target.name]: e.target.value});
+    }
+    const handleSubmit = async (e)=>{
+        e.preventDefault();
+        const { username, email, password , confirmPassword } = values;
+        if( !username || !email || !password || !confirmPassword ){
+            toast.error('Please fill all the fields.');
             return;
         }
-
-        if (password !== confirmPassword) {
-            toast.error("Password and Confirm Password should match.");
+        if( password !== confirmPassword ){
+            toast.error('Password and Confirm Password should match.');
             return;
         }
-
-        try {
-            const { data } = await axios.post(registerRoute, {
-                username,
-                email,
-                password,
-            });
-            
-            if (data.status === true) {
-
-                navigate('/login');
-            } else {
-                
-                toast.error(data.msg);
-            }
-        } catch (error) {
-            console.error("An error occurred:", error);
-            toast.error("An error occurred. Please try again later.");
+        try{
+            const res = await register({ username , email , password }).unwrap();
+            dispatch(setCredentials({ ...res }));
+            navigate('/');
+        } catch(err){
+            toast.error( err?.data?.message || err.error );
         }
-    };
 
+    }
     return (
-        <Container component="main" maxWidth="xs">
+        <Container component="main" maxWidth="xs" sx={{ marginBottom : 4}}>
             <Box
                 sx={{
-                    marginTop: 8,
+                    marginTop: 4,
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
@@ -124,6 +115,10 @@ const Register = () => {
                     >
                         Create User
                     </Button>
+                    { isLoading && 
+                    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+                        <CircularProgress />
+                    </div> }
                     <Box textAlign="center">
                         <Typography variant="body2">
                             Already have an account? <Link to="/login">Login</Link>
@@ -135,4 +130,5 @@ const Register = () => {
     );
 };
 
-export default Register;
+
+export default Register

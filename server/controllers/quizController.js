@@ -10,6 +10,7 @@ module.exports.createTest = async (req, res) => {
     if (!title || !subject || !timeLimit || !questions || questions.length === 0) {
       return res.status(400).json({ message: 'All fields are required, including at least one question with valid options.' });
     }
+
     // Check if a test with the same title already exists
     const existingTest = await Test.findOne({ title });
     if (existingTest) {
@@ -41,7 +42,7 @@ module.exports.createTest = async (req, res) => {
       timeLimit,
       questions: questionIds,
     });
-    
+
     const savedTest = await test.save();
     res.status(201).json(savedTest);
   } catch (error) {
@@ -88,17 +89,37 @@ module.exports.getTestById = async (req, res) => {
   }
 };
 
+module.exports.canStartTest = async (req, res) => {
+  try {
+    const testId = req.params.testId;
+    const userId = req.user._id; // Assuming you have middleware that attaches the user to the request
+    const result = await Result.findOne({ test: testId, user: userId });
+    
+    if (result) {
+      return res.json({ allowed: false, message: 'You have already attempted this test. The number of attempts allowed is only one.' });
+    } else {
+      return res.json({ allowed: true });
+    }
+  } catch (error) {
+    console.error('Error checking test start:', error);
+    return res.status(500).json({ message: 'Internal Server Error' });
+  }
+};
+
+
+
+
 // Submit test results
 module.exports.submitTestResults = async (req, res) => {
   try {
     const { testId, answers } = req.body;
     const userId = req.user._id;
-
+    
     if (!testId || !Array.isArray(answers)) {
       return res.status(400).json({ message: 'Invalid input data.' });
     }
-    
     const test = await Test.findById(testId).populate('questions');
+
     if (!test) {
       return res.status(404).json({ message: 'Test not found.' });
     }
@@ -107,12 +128,14 @@ module.exports.submitTestResults = async (req, res) => {
     let incorrect = 0;
     let notAttempted = 0;
     test.questions.forEach((question) => {
+      
       const userAnswer = answers.find((answer) => answer.questionId === question._id.toString());
       
-      if (!userAnswer) {
+      if (!userAnswer || !userAnswer.optionId) {
         notAttempted++;
         return;
       }
+
       const correctOption = question.options.find(option => option.isCorrect);
       if (userAnswer.optionId === correctOption._id.toString()) {
         correct++;
@@ -137,7 +160,6 @@ module.exports.submitTestResults = async (req, res) => {
   }
 };
 
-
 // Fetch a specific result
 module.exports.getResult = async (req, res) => {
   try {
@@ -149,7 +171,7 @@ module.exports.getResult = async (req, res) => {
     res.status(200).json(result);
   } catch (error) {
     console.error('Error fetching result:', error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: 'Server error.' });
   }
 };
 
@@ -161,6 +183,6 @@ module.exports.getUserResults = async (req, res) => {
     res.status(200).json(results);
   } catch (error) {
     console.error('Error fetching user results:', error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: 'Server error.' });
   }
 };

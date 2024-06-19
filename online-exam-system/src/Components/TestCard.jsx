@@ -2,11 +2,11 @@ import React from 'react';
 import { Card, CardContent, Typography, Button } from '@mui/material';
 import { Link } from 'react-router-dom';
 import PropTypes from 'prop-types';
-
-const TestCard = ({ test }) => {
+const TestCard =  ({ test }) => {
+  
   return (
     <Card>
-      <CardContent>
+      <CardContent sx={{textAlign : 'center'}} >
         <Typography variant="h5" gutterBottom>
           {test.title}
         </Typography>

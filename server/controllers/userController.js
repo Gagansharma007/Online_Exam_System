@@ -61,18 +61,12 @@ module.exports.login = asyncHandler(async (req, res) => {
     const { username, password } = req.body;
     const user = await User.findOne({ username });
     if (!user || !(await bcrypt.compare(password, user.password))) {
-        return res.status(401).json({ msg: 'Incorrect Username or Password.', status: false });
+        return res.json({ msg: 'Incorrect Username or Password.', status: false });
     }
 
     generateToken(res, user._id);
-    // res.cookie('token', token, {
-    //     httpOnly: true,
-    //     secure: process.env.NODE_ENV === 'production',
-    //     sameSite: 'Strict',
-    // });
-
     delete user.password;
-    res.json({ status: true, user , msg: 'working'});
+    res.json({ _id : user._id, username: user.username, email: user.email, isAvatarImageSet: user.isAvatarImageSet , avatarImage: user.avatarImage });
 });
 
 module.exports.logout = (req, res) => {

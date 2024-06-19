@@ -1,52 +1,47 @@
-import React, { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { Box , Typography , Button, Container, TextField, CircularProgress} from '@mui/material';
 import { Link, useNavigate } from 'react-router-dom';
+import { useSelector, useDispatch } from 'react-redux';
+import { useLoginMutation } from '../Slices/userApiSlice';
+import { setCredentials } from '../Slices/authSlice';
 import { toast } from 'react-toastify';
-import { Box, Button, Container, TextField, Typography } from '@mui/material';
-import axios from 'axios';
-import 'react-toastify/dist/ReactToastify.css';
-import { loginRoute } from '../Utils/APIRoutes';
-
 const Login = () => {
-    const navigate = useNavigate();
-    const [values, setValues] = useState({
-        username: "",
-        password: "",
-    });
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const [values, setValues] = useState({
+    username: "",
+    password: "",
+  });
+  const [ login , { isLoading }] = useLoginMutation();
+  const { userInfo } = useSelector(state=> state.auth);
+  useEffect(()=>{
+    if( userInfo ){
+      navigate('/');
+    }
+  },[userInfo, navigate]);
+  const handleChange = (e)=>{
+    setValues({...values, [e.target.name] : e.target.value });
+  }
+  const handleSubmit = async (e)=>{
+    e.preventDefault();
+    const { username , password } = values;
 
-    const handleChange = (e) => {
-        setValues({ ...values, [e.target.name]: e.target.value });
-    };
+    if( !username || !password ){
+      toast.error('Please enter both username and password');
+      return;
+    }
+    try{
+      const res = await login({ username , password }).unwrap();
+      dispatch(setCredentials({...res}));
+      navigate('/');
+    } catch(err){
+      toast.error(err?.data?.message || err.error);
+    }
+  }
+  
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        const { username, password } = values;
-        
-        if (!username || !password) {
-            toast.error("Please enter both username and password");
-            return;
-        }
-
-        try {
-            const { data } = await axios.post(loginRoute, {
-                username,
-                password,
-            });
-            if (data.status === true) {
-                
-                document.cookie = `token=${data.token}; path=/;`;
-
-                navigate('/');
-            } else {
-                toast.error(data.msg);
-            }
-        } catch (error) {
-            console.error("An error occurred:", error);
-            toast.error("An error occurred. Please try again later.");
-        }
-    };
-
-    return (
-        <Container component='main' maxWidth='xs'>
+  return (
+    <Container component='main' maxWidth='xs'>
             <Box
                 sx={{
                     marginTop: 8,
@@ -92,13 +87,19 @@ const Login = () => {
                     >
                         Log In
                     </Button>
+                    { 
+                    isLoading && 
+                    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+                        <CircularProgress />
+                    </div> 
+                    }
                     <Typography variant="body2" align="center">
-                        Don't have an account? <Link to="/signup">Register</Link>
+                        Don't have an account? <Link to="/register">Register</Link>
                     </Typography>
                 </Box>
             </Box>
         </Container>
-    );
-};
+  )
+}
 
-export default Login;
+export default Login

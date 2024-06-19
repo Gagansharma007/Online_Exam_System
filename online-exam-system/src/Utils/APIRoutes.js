@@ -10,3 +10,5 @@ export const getAllTests = `${host}/api/test`;
 export const getQuestionById = `${host}/api/test`;
 export const getTestsBySubject = `${host}/api/test/subject`;
 export const getResult = `${host}/api/test/result`;
+export const canStart = `${host}/api/test/canstart`;
+export const BASE_URL = 'http://localhost:5000/api';

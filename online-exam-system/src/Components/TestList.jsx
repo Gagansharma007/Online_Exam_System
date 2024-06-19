@@ -6,6 +6,7 @@ import { CircularProgress, Grid, Typography, Container } from '@mui/material';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { getTestsBySubject } from '../Utils/APIRoutes';
+import Header from './Header';
 
 const TestList = () => {
   const { subject } = useParams();
@@ -33,8 +34,10 @@ const TestList = () => {
   }
 
   return (
-    <Container>
-      <Typography variant="h4" gutterBottom>
+    <div>
+      <Header/>
+    <Container sx={{margin: '20px'}}>
+      <Typography sx={{textAlign: 'center'}} variant="h4" gutterBottom>
         {subject} Tests
       </Typography>
       <Grid container spacing={3}>
@@ -49,6 +52,7 @@ const TestList = () => {
         )}
       </Grid>
     </Container>
+    </div>
   );
 };
 

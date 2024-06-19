@@ -1,10 +1,11 @@
-// AvatarSettingPage.js
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { UserContext } from './UserContext';
 
 const AvatarSettingPage = () => {
   const navigate = useNavigate();
+  const { user, setUser } = useContext(UserContext);
   const [avatar, setAvatar] = useState(null);
 
   const handleAvatarChange = (e) => {
@@ -17,16 +18,20 @@ const AvatarSettingPage = () => {
     formData.append('avatar', avatar);
     
     try {
-      const response = await axios.post('/api/upload-avatar', formData, {
+      const response = await axios.post(`/api/upload-avatar/${user._id}`, formData, {
         headers: {
-          'Content-Type': 'multipart/form-data'
+          'Content-Type': 'multipart/form-data',
+          Authorization: `Bearer ${document.cookie.split('; ').find(row => row.startsWith('token=')).split('=')[1]}`
         }
       });
       
       const avatarUrl = response.data.avatarUrl;
       // Update user profile with avatarUrl
-      // Example: Update profile API call
-      // axios.post('/api/update-profile', { avatarUrl });
+      setUser(prevUser => ({
+        ...prevUser,
+        avatarImage: response.data.avatarImage,
+        isAvatarImageSet: true
+      }));
       
       navigate('/homepage');
     } catch (error) {

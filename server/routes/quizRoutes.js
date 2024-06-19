@@ -10,7 +10,8 @@ const {
   getTestById,
   submitTestResults,
   getResult,
-  getUserResults
+  getUserResults,
+  canStartTest // New controller for checking if user can start the test
 } = require('../controllers/quizController');
 
 // Route to create a new test
@@ -23,7 +24,10 @@ router.get('/', getAllTests);
 router.get('/subject/:subject', getTestsBySubject);
 
 // Route to fetch a specific test by ID
-router.get('/:id', getTestById);
+router.get('/:id', protect, getTestById);
+
+// Route to check if the user can start the test
+router.get('/canstart/:testId', protect, canStartTest);
 
 // Route to submit test results
 router.post('/submit', protect, submitTestResults);
