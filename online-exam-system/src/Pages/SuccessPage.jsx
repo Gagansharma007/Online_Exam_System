@@ -1,7 +1,6 @@
 import React, { useState , useEffect } from 'react';
 import { Container, Typography, Button, Box } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import Header from '../Components/Header';
 import axios from 'axios';
 import { authMe } from '../Utils/APIRoutes';
 import { toast } from 'react-toastify';
@@ -36,9 +35,6 @@ const SuccessPage = () => {
 
   return (
     <Box>
-    {isLoaded && (
-        <Header userName={currentUser.username} />
-    )}
     <Container
       sx={{
         display: 'flex',

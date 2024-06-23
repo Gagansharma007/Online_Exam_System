@@ -26,6 +26,20 @@ export const userApiSlice = apiSlice.injectEndpoints({
                 credentials: 'include',
             }),
         }),
+        fetchAllSubjects: builder.mutation({
+            query: ()=>({
+                url : `${USERS_URL}/test`,
+                method: 'GET',
+                credentials: 'include',
+            }),
+        }),
+        fetchTestBySubject : builder.mutation({
+            query: (subject)=> ({
+                url: `${USERS_URL}/test/subject/${subject}`,
+                method: 'GET',
+                credentials: 'include'
+            }),
+        }),
         // updateUser: builder.mutation({
         //     query: (data)=>({
         //         url: `${USERS_URL}/users/profile`,
@@ -65,6 +79,8 @@ export const {
     useLoginMutation, 
     useLogoutMutation,
     useRegisterMutation,
+    useFetchAllSubjectsMutation,
+    useFetchTestBySubjectMutation,
     // useUpdateUserMutation,
     // useFetchAllUsersMutation,
     // useFetchChatMessagesMutation,

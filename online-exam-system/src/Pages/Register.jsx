@@ -9,7 +9,7 @@ import { setCredentials } from '../Slices/authSlice';
 const Register = () => {
     const navigate = useNavigate();
     const dispatch = useDispatch();
-    const { userInfo } = useSelector(state => state.auth );
+    const { userInfo } = useSelector(state => state.root.auth );
     const [ values , setValues ] = useState({
         username : "",
         email: "",
@@ -41,7 +41,7 @@ const Register = () => {
             dispatch(setCredentials({ ...res }));
             navigate('/');
         } catch(err){
-            toast.error( err?.data?.message || err.error );
+            toast.error( err?.data?.msg || err.error );
         }
 
     }

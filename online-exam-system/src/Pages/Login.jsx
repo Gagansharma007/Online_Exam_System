@@ -13,7 +13,7 @@ const Login = () => {
     password: "",
   });
   const [ login , { isLoading }] = useLoginMutation();
-  const { userInfo } = useSelector(state=> state.auth);
+  const { userInfo } = useSelector(state=> state.root.auth);
   useEffect(()=>{
     if( userInfo ){
       navigate('/');
@@ -35,7 +35,7 @@ const Login = () => {
       dispatch(setCredentials({...res}));
       navigate('/');
     } catch(err){
-      toast.error(err?.data?.message || err.error);
+      toast.error(err?.data?.msg || err.error);
     }
   }
   

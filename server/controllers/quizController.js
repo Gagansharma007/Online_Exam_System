@@ -6,18 +6,15 @@ module.exports.createTest = async (req, res) => {
   try {
     const { title, subject, timeLimit, questions } = req.body;
 
-    // Validate the input
     if (!title || !subject || !timeLimit || !questions || questions.length === 0) {
       return res.status(400).json({ message: 'All fields are required, including at least one question with valid options.' });
     }
 
-    // Check if a test with the same title already exists
     const existingTest = await Test.findOne({ title });
     if (existingTest) {
       return res.status(400).json({ message: 'Test with this title already exists.' });
     }
 
-    // Convert question data to ObjectId references
     const questionIds = [];
     for (const questionData of questions) {
       const options = questionData.options.map(option => ({
@@ -28,7 +25,7 @@ module.exports.createTest = async (req, res) => {
       const question = new Question({
         text: questionData.text,
         options: options,
-        test: null // You can assign a test reference here if needed
+        test: null 
       });
 
       await question.save();

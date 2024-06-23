@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const testSchema = new mongoose.Schema({
-  title: { type: String, required: true, unique: true }, // Ensure unique test titles
+  title: { type: String, required: true, unique: true }, 
   subject: { type: String, required: true },
   creator: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   questions: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Question' }],

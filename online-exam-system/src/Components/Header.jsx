@@ -5,7 +5,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { useLogoutMutation } from "../Slices/userApiSlice";
 import { logout } from "../Slices/authSlice";
 const Header = () => {
-    const userInfo  = useSelector(state=>state.auth.userInfo);
+    const userInfo  = useSelector(state=>state.root.auth.userInfo);
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const [ logoutapicall ] = useLogoutMutation();

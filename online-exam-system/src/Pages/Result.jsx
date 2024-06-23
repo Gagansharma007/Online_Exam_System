@@ -12,7 +12,6 @@ import {
   Grid
 } from '@mui/material';
 import { getResult } from '../Utils/APIRoutes';
-import Header from '../Components/Header';
 
 const Result = () => {
   const { testId } = useParams();
@@ -47,7 +46,6 @@ const Result = () => {
 
   return (
     <div>
-      <Header/>
       <Container maxWidth="sm">
         <Box mt={4}>
           <Paper elevation={3}>

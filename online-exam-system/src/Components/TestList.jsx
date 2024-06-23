@@ -1,22 +1,21 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import { useSelector , useDispatch } from 'react-redux';
 import TestCard from './TestCard';
 import { useParams } from 'react-router-dom';
 import { CircularProgress, Grid, Typography, Container } from '@mui/material';
+import { useFetchTestBySubjectMutation } from '../Slices/userApiSlice';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { getTestsBySubject } from '../Utils/APIRoutes';
-import Header from './Header';
-
 const TestList = () => {
   const { subject } = useParams();
   const [tests, setTests] = useState([]);
   const [loading, setLoading] = useState(true);
-
+  const dispatch = useDispatch();
+  const [ fetchTestBySubject ] = useFetchTestBySubjectMutation();
   useEffect(() => {
     const fetchTests = async () => {
       try {
-        const response = await axios.get(`${getTestsBySubject}/${subject}`);
+        const response = await fetchTestBySubject(subject).unwrap();
         setTests(response.data);
       } catch (error) {
         console.error('Error fetching tests:', error);
@@ -35,7 +34,6 @@ const TestList = () => {
 
   return (
     <div>
-      <Header/>
     <Container sx={{margin: '20px'}}>
       <Typography sx={{textAlign: 'center'}} variant="h4" gutterBottom>
         {subject} Tests

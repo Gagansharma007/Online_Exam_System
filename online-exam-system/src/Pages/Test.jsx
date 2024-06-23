@@ -1,6 +1,8 @@
-import React, { useEffect, useState, useContext } from 'react';
+import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useSelector , useDispatch } from 'react-redux';
+import { setSelectedTest } from '../Slices/testSlice';
 import {
   Box,
   Button,
@@ -18,15 +20,11 @@ import {
   DialogTitle,
   Grid,
   List,
-  ListItem,
   ListItemText,
   ListItemButton
 } from '@mui/material';
-import Header from '../Components/Header';
 import { getQuestionById, submitQuiz, canStart } from '../Utils/APIRoutes';
-import { UserContext } from '../Components/UserContext';
 
-// StartTestPrompt Component
 const StartTestPrompt = ({ open, onClose, onConfirm }) => (
   <Dialog open={open} onClose={onClose}>
     <DialogTitle>{"Start Test?"}</DialogTitle>
@@ -81,7 +79,6 @@ const TestTimer = ({ duration, onTimeUp }) => {
 
 const Test = () => {
   const { id } = useParams();
-  const { user } = useContext(UserContext);
   const [test, setTest] = useState(null);
   const [answers, setAnswers] = useState({});
   const [loading, setLoading] = useState(true);
@@ -89,7 +86,8 @@ const Test = () => {
   const [testStarted, setTestStarted] = useState(false);
   const [attemptWarningOpen, setAttemptWarningOpen] = useState(false);
   const navigate = useNavigate();
-
+  const { userInfo } = useSelector( state => state.root.auth );
+  // const { selectedSubject } = useSelector( state => state.root.test );
   useEffect(() => {
     const fetchTest = async () => {
       try {
@@ -109,7 +107,7 @@ const Test = () => {
     try {
       const response = await axios.get(`${canStart}/${id}`, {
         headers: {
-          Authorization: `Bearer ${user.token}`
+          Authorization: `Bearer ${userInfo.token}`
         }
       });
       if (response.data.allowed) {
@@ -139,7 +137,7 @@ const Test = () => {
         answers: Object.entries(answers).map(([questionId, optionId]) => ({ questionId, optionId }))
       }, {
         headers: {
-          Authorization: `Bearer ${user.token}`
+          Authorization: `Bearer ${userInfo.token}`
         }
       });
       exitFullScreen();
@@ -177,7 +175,6 @@ const Test = () => {
 
   return (
     <div>
-      {!testStarted && (<Header />)}
       <Container maxWidth="lg">
         {!testStarted && (
           <Box display="flex" flexDirection="column" justifyContent="center" alignItems="center" height="100vh">
@@ -219,7 +216,7 @@ const Test = () => {
             <Grid item xs={6}>
               <Paper elevation={3}>
                 <Box p={2}>
-                  <Typography variant="h6">Username: {user.username}</Typography>
+                  <Typography variant="h6">Username: {userInfo.username}</Typography>
                   <TestTimer duration={test.timeLimit} onTimeUp={handleTimeUp} />
                 </Box>
               </Paper>

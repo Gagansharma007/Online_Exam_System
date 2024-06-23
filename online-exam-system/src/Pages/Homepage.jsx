@@ -1,16 +1,17 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Box, Container, Typography, Grid, CircularProgress, Button } from '@mui/material';
-import { useSelector } from 'react-redux';
-import axios from 'axios';
-import { getAllTests } from '../Utils/APIRoutes';
+import { useSelector, useDispatch } from 'react-redux';
+import { useFetchAllSubjectsMutation } from '../Slices/userApiSlice';
+import { allSubjects, setSelectedSubject } from '../Slices/testSlice';
 
 const Homepage = () => {
   const navigate = useNavigate();
-  const userInfo = useSelector( state => state.auth.userInfo );
-  const [subjects, setSubjects] = useState([]);
-  const [loading, setLoading] = useState(true);
-
+  const userInfo = useSelector( state => state.root.auth.userInfo );
+  const { subjects } = useSelector( state => state.root.test );
+  const dispatch = useDispatch();
+  const [ fetchAllSubjects ] = useFetchAllSubjectsMutation();
+  const [ loading , setLoading ] = useState(true);
   useEffect(() => {
     if ( !userInfo ) {
       navigate('/login');
@@ -20,9 +21,8 @@ const Homepage = () => {
   useEffect(() => {
     const fetchSubjects = async () => {
       try {
-        const response = await axios.get(getAllTests);
-        const uniqueSubjects = Array.from(new Set(response.data.map(test => test.subject)));
-        setSubjects(uniqueSubjects);
+        const response = await fetchAllSubjects().unwrap();
+        dispatch(allSubjects(response));
       } catch (error) {
         console.error('Error fetching subjects:', error);
       } finally {
@@ -31,8 +31,11 @@ const Homepage = () => {
     };
 
     fetchSubjects();
-  }, []);
-
+  }, [ fetchAllSubjects, dispatch ]);
+  const handleSelectedSubject = (subject)=>{
+    dispatch(setSelectedSubject(subject));
+    navigate(`/test/${subject}`);
+  }
   if (loading ) {
     return <CircularProgress />;
   }
@@ -48,7 +51,8 @@ const Homepage = () => {
                 variant="contained"
                 color="primary"
                 fullWidth
-                onClick={() => navigate(`/test/${subject}`)}
+                onClick={() => handleSelectedSubject(subject)
+                  }
               >
                 {subject}
               </Button>

@@ -33,9 +33,10 @@ module.exports.register = asyncHandler(async (req, res) => {
 
     const usernameCheck = await User.findOne({ username });
     if (usernameCheck) return res.status(400).json({ msg: 'Username already exists', status: false });
-
+    if( username.length < 3) return res.status(400).json({msg: 'Minimum length of username should be 3.'});
     const emailCheck = await User.findOne({ email });
     if (emailCheck) return res.status(400).json({ msg: 'Email already exists', status: false });
+    if( password.length < 8 ) return res.status(400).json({msg: 'Minimum length of the password should be 8.'});
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash( password, salt );
     const user = await User.create({
@@ -61,7 +62,7 @@ module.exports.login = asyncHandler(async (req, res) => {
     const { username, password } = req.body;
     const user = await User.findOne({ username });
     if (!user || !(await bcrypt.compare(password, user.password))) {
-        return res.json({ msg: 'Incorrect Username or Password.', status: false });
+        return res.status(400).json({ msg: 'Incorrect Username or Password.', status: false });
     }
 
     generateToken(res, user._id);

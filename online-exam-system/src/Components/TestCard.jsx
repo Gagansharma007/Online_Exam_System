@@ -1,9 +1,14 @@
 import React from 'react';
 import { Card, CardContent, Typography, Button } from '@mui/material';
 import { Link } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
+import { setSelectedTest } from '../Slices/testSlice';
 import PropTypes from 'prop-types';
 const TestCard =  ({ test }) => {
-  
+  const dispatch = useDispatch();
+  const handleSelectedTest = (test)=> {
+    dispatch(setSelectedTest( test ));
+  }
   return (
     <Card>
       <CardContent sx={{textAlign : 'center'}} >
