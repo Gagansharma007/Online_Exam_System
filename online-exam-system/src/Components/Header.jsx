@@ -5,7 +5,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { useLogoutMutation } from "../Slices/userApiSlice";
 import { logout } from "../Slices/authSlice";
 const Header = () => {
-    const userInfo  = useSelector(state=>state.root.auth.userInfo);
+    const userInfo  = useSelector(state=>state.auth.userInfo);
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const [ logoutapicall ] = useLogoutMutation();
@@ -33,6 +33,8 @@ const Header = () => {
                 </IconButton>
                 {userInfo ? 
                 <>
+                <Button component={Link} to='/createtest' color='inherit' sx={{mr: 1}}>Create Test</Button>
+                <Button component={Link} to="/allresults" color="inherit" sx={{mr : 1}}>Results</Button>
                 <IconButton color="inherit" >
                     <Typography variant="body1" sx={{ marginRight : '20px' }}>{userInfo.username}</Typography>
                 </IconButton>

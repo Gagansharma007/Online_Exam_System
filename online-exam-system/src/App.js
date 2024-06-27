@@ -13,6 +13,8 @@ import Test from './Pages/Test';
 import SuccessPage from './Pages/SuccessPage';
 import Result from './Pages/Result';
 import { UserProvider } from './Components/UserContext';
+import AllResults from './Pages/AllResults';
+import ViewTest from './Pages/ViewTest';
 
 axios.defaults.withCredentials = true;
 
@@ -32,6 +34,8 @@ function App() {
           <Route path="/test/:subject" element={<TestList />} />
           <Route path='/success' element={<SuccessPage />} />
           <Route path="/result/:testId" element={<Result />} />
+          <Route path='/allresults' element={<AllResults /> } />
+          <Route path="/viewtest/:resultId" element={<ViewTest/>} />
         </Routes>
       </div>
       </BrowserRouter>

@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useSelector , useDispatch } from 'react-redux';
-import { setSelectedTest } from '../Slices/testSlice';
+import { useSelector } from 'react-redux';
+import { useFetchTestByIdMutation, useSubmitTestMutation } from '../Slices/userApiSlice';
+import StartTest from '../Components/StartTest';
+import TestTimer from '../Components/TestTimer';
 import {
   Box,
   Button,
@@ -13,86 +14,30 @@ import {
   Radio,
   RadioGroup,
   FormControlLabel,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
   Grid,
-  List,
   ListItemText,
-  ListItemButton
+  List,
+  ListItemButton,
 } from '@mui/material';
-import { getQuestionById, submitQuiz, canStart } from '../Utils/APIRoutes';
-
-const StartTestPrompt = ({ open, onClose, onConfirm }) => (
-  <Dialog open={open} onClose={onClose}>
-    <DialogTitle>{"Start Test?"}</DialogTitle>
-    <DialogContent>
-      <DialogContentText>
-        Are you sure you want to take the test? It will switch to full-screen mode.
-      </DialogContentText>
-    </DialogContent>
-    <DialogActions>
-      <Button onClick={onClose} color="primary">No</Button>
-      <Button onClick={onConfirm} color="primary" autoFocus>Yes</Button>
-    </DialogActions>
-  </Dialog>
-);
-
-// AttemptWarning Component
-const AttemptWarning = ({ open, onClose }) => (
-  <Dialog open={open} onClose={onClose}>
-    <DialogTitle>{"Attempt Warning"}</DialogTitle>
-    <DialogContent>
-      <DialogContentText>
-        You have already attempted this test. The number of attempts allowed is only one.
-      </DialogContentText>
-    </DialogContent>
-    <DialogActions>
-      <Button onClick={onClose} color="primary">OK</Button>
-    </DialogActions>
-  </Dialog>
-);
-
-const TestTimer = ({ duration, onTimeUp }) => {
-  const [timeLeft, setTimeLeft] = useState(duration * 60);
-  useEffect(() => {
-    if (timeLeft <= 0) {
-      onTimeUp();
-      return;
-    }
-
-    const timer = setInterval(() => {
-      setTimeLeft((prevTimeLeft) => prevTimeLeft - 1);
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, [timeLeft, onTimeUp]);
-
-  return (
-    <Typography variant="body1">
-      Time Remaining: {Math.floor(timeLeft / 60)}:{timeLeft % 60 < 10 ? '0' : ''}{timeLeft % 60}
-    </Typography>
-  );
-};
 
 const Test = () => {
   const { id } = useParams();
   const [test, setTest] = useState(null);
   const [answers, setAnswers] = useState({});
   const [loading, setLoading] = useState(true);
-  const [promptOpen, setPromptOpen] = useState(false);
+  const [promptOpen, setPromptOpen] = useState(false); 
   const [testStarted, setTestStarted] = useState(false);
-  const [attemptWarningOpen, setAttemptWarningOpen] = useState(false);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0); 
   const navigate = useNavigate();
-  const { userInfo } = useSelector( state => state.root.auth );
-  // const { selectedSubject } = useSelector( state => state.root.test );
+  const { userInfo } = useSelector((state) => state.auth);
+  const [fetchTestById] = useFetchTestByIdMutation();
+  const [submitTest] = useSubmitTestMutation();
+
   useEffect(() => {
     const fetchTest = async () => {
       try {
-        const response = await axios.get(`${getQuestionById}/${id}`);
-        setTest(response.data);
+        const response = await fetchTestById(id).unwrap();
+        setTest(response);
       } catch (error) {
         console.error('Error fetching test:', error);
       } finally {
@@ -101,26 +46,12 @@ const Test = () => {
     };
 
     fetchTest();
-  }, [id]);
+  }, [id, fetchTestById]);
 
   const handleStartTest = async () => {
-    try {
-      const response = await axios.get(`${canStart}/${id}`, {
-        headers: {
-          Authorization: `Bearer ${userInfo.token}`
-        }
-      });
-      if (response.data.allowed) {
-        enterFullScreen();
-        setTestStarted(true);
-        setPromptOpen(false);
-      } else {
-        setAttemptWarningOpen(true);
-        setPromptOpen(false);
-      }
-    } catch (error) {
-      console.error('Error checking test start:', error);
-    }
+    enterFullScreen();
+    setTestStarted(true);
+    setPromptOpen(false); 
   };
 
   const handleTimeUp = () => {
@@ -131,15 +62,12 @@ const Test = () => {
     if (event && event.preventDefault) {
       event.preventDefault();
     }
+    let data = {
+      testId: test._id,
+      answers: Object.entries(answers).map(([questionId, optionId]) => ({ questionId, optionId })),
+    };
     try {
-      await axios.post(submitQuiz, {
-        testId: test._id,
-        answers: Object.entries(answers).map(([questionId, optionId]) => ({ questionId, optionId }))
-      }, {
-        headers: {
-          Authorization: `Bearer ${userInfo.token}`
-        }
-      });
+      await submitTest(data).unwrap();
       exitFullScreen();
       navigate(`/result/${test._id}`);
     } catch (error) {
@@ -151,23 +79,46 @@ const Test = () => {
   const handleChange = (questionId, optionId) => {
     setAnswers((prevAnswers) => ({ ...prevAnswers, [questionId]: optionId }));
   };
+  const clearResponse = ( questionId ) => {
+    setAnswers((prevAnswers) => ({ ...prevAnswers , [questionId]: null}));
+  };
+  const handleNextQuestion = () => {
+    setCurrentQuestionIndex((Index) => Index + 1);
+  };
+  const handlePreviousQuestion = () => {
+    setCurrentQuestionIndex((Index) => Index - 1);
+  }
 
   const renderQuestionList = () => {
-    return test.questions.map((question, index) => {
-      const status = answers[question._id] ? 'green' : 'red';
-      return (
-        <ListItemButton
-          key={question._id}
-          onClick={() => {
-            document.getElementById(question._id).scrollIntoView({ behavior: 'smooth' });
-          }}
-          style={{ backgroundColor: status }}
-        >
-          <ListItemText primary={`Q${index + 1}`} />
-        </ListItemButton>
-      );
-    });
+
+    return (
+      <List
+        sx={{
+          display: 'flex',
+          flexWrap: 'nowrap',
+          overflowX: 'auto',
+          padding: '8px 4px', 
+        }}
+      >
+        {test.questions.map((question, index) => (
+          <ListItemButton
+            key={question._id}
+            onClick={() => setCurrentQuestionIndex(index)}
+            style={{
+              backgroundColor: answers[question._id] ? 'green' : '#aaaaaa',
+              width: '25%',
+              height: '50px',
+              borderRadius: '8px',
+              margin: '8px', 
+            }}
+          >
+            <ListItemText primary={`Q${index + 1}`} />
+          </ListItemButton>
+        ))}
+      </List>
+    );
   };
+  
 
   if (loading) {
     return <CircularProgress />;
@@ -175,7 +126,7 @@ const Test = () => {
 
   return (
     <div>
-      <Container maxWidth="lg">
+      <Container disableGutters>
         {!testStarted && (
           <Box display="flex" flexDirection="column" justifyContent="center" alignItems="center" height="100vh">
             <Box mb={2} p={2} border={1} borderColor="grey.500" textAlign="center" bgcolor="background.paper">
@@ -191,67 +142,60 @@ const Test = () => {
           </Box>
         )}
         {!testStarted && (
-          <StartTestPrompt
+          <StartTest
             open={promptOpen}
             onClose={() => setPromptOpen(false)}
             onConfirm={handleStartTest}
           />
         )}
-        {attemptWarningOpen && (
-          <AttemptWarning
-            open={attemptWarningOpen}
-            onClose={() => setAttemptWarningOpen(false)}
-          />
-        )}
         {testStarted && (
           <Grid container spacing={2}>
-            <Grid item xs={6}>
-              <Paper elevation={3}>
-              <Box p={2}>
-                  <Typography variant="h5">{test.title}</Typography>
-                  <Typography variant="body1">{test.subject}</Typography>
-                </Box>
-              </Paper>
+            <Grid item xs={12}>
+              <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+                <Typography variant="h5">{test.title}</Typography>
+                <Typography variant="h6">Username: {userInfo.username}</Typography>
+                <Typography variant="h6">Time Left: <TestTimer duration={test.timeLimit} onTimeUp={handleTimeUp} /></Typography>
+                <Typography variant="h6">Subject: {test.subject}</Typography>
+              </Box>
             </Grid>
-            <Grid item xs={6}>
-              <Paper elevation={3}>
-                <Box p={2}>
-                  <Typography variant="h6">Username: {userInfo.username}</Typography>
-                  <TestTimer duration={test.timeLimit} onTimeUp={handleTimeUp} />
-                </Box>
-              </Paper>
-            </Grid>
-            <Grid item xs={6}>
+            <Grid item xs={9}>
               <Paper elevation={3}>
                 <Box p={2}>
                   <Typography variant="h6">Questions</Typography>
-                  {test.questions.map((question) => (
-                    <Paper key={question._id} style={{ padding: '16px', margin: '16px 0' }} id={question._id}>
-                      <Typography variant="h6">{question.text}</Typography>
-                      <RadioGroup
-                        name={question._id}
-                        value={answers[question._id] || ''}
-                        onChange={(e) => handleChange(question._id, e.target.value)}
-                      >
-                        {question.options.map((option) => (
-                          <FormControlLabel
-                            key={option._id}
-                            value={option._id}
-                            control={<Radio />}
-                            label={option.text}
-                          />
-                        ))}
-                      </RadioGroup>
-                    </Paper>
-                  ))}
+                  <Paper style={{ padding: '5px', margin: '5px' }}>
+                    <Typography variant="h6">{test.questions[currentQuestionIndex].text}</Typography>
+                    <RadioGroup
+                      name={test.questions[currentQuestionIndex]._id}
+                      value={answers[test.questions[currentQuestionIndex]._id] || ''}
+                      onChange={(e) => handleChange(test.questions[currentQuestionIndex]._id, e.target.value)}
+                    >
+                      {test.questions[currentQuestionIndex].options.map((option) => (
+                        <FormControlLabel
+                          key={option._id}
+                          value={option._id}
+                          control={<Radio />}
+                          label={option.text}
+                        />
+                      ))}
+                    </RadioGroup>
+                  </Paper>
+                  <Box display="flex" justifyContent="center" mt={2}>
+                    <Button variant='contained' color='primary' sx={{margin: '5px'}} onClick={()=> clearResponse(test.questions[currentQuestionIndex]._id)} >Clear</Button>
+                    { currentQuestionIndex > 0 && (
+                      <Button variant="contained" color="primary" sx={{ margin : '5px'}} onClick={handlePreviousQuestion}>Previous</Button>
+                    )}
+                    {currentQuestionIndex < test.questions.length - 1 && (
+                      <Button variant="contained" color="primary" sx={{ margin: '5px'}} onClick={handleNextQuestion}>Next</Button>
+                    )}
+                  </Box>
                 </Box>
               </Paper>
             </Grid>
-            <Grid item xs={6}>
-              <Paper elevation={3}>
+            <Grid item xs={3}>
+              <Paper elevation={4}>
                 <Box p={2}>
                   <Typography variant="h6">Question List</Typography>
-                  <List component="nav">
+                  <List component="nav" >
                     {renderQuestionList()}
                   </List>
                 </Box>
@@ -273,23 +217,24 @@ const enterFullScreen = () => {
   const elem = document.documentElement;
   if (elem.requestFullscreen) {
     elem.requestFullscreen();
-  } else if (elem.mozRequestFullScreen) { // Firefox
+  } else if (elem.mozRequestFullScreen) {
     elem.mozRequestFullScreen();
-  } else if (elem.webkitRequestFullscreen) { // Chrome, Safari and Opera
+  } else if (elem.webkitRequestFullscreen) { 
     elem.webkitRequestFullscreen();
-  } else if (elem.msRequestFullscreen) { // IE/Edge
+  } else if (elem.msRequestFullscreen) { 
     elem.msRequestFullscreen();
   }
 };
 
+
 const exitFullScreen = () => {
   if (document.exitFullscreen) {
     document.exitFullscreen();
-  } else if (document.mozCancelFullScreen) { // Firefox
+  } else if (document.mozCancelFullScreen) { 
     document.mozCancelFullScreen();
-  } else if (document.webkitExitFullscreen) { // Chrome, Safari and Opera
+  } else if (document.webkitExitFullscreen) { 
     document.webkitExitFullscreen();
-  } else if (document.msExitFullscreen) { // IE/Edge
+  } else if (document.msExitFullscreen) { 
     document.msExitFullscreen();
   }
 };

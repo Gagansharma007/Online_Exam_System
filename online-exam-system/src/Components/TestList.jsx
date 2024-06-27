@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { useSelector , useDispatch } from 'react-redux';
 import TestCard from './TestCard';
 import { useParams } from 'react-router-dom';
 import { CircularProgress, Grid, Typography, Container } from '@mui/material';
@@ -10,13 +9,12 @@ const TestList = () => {
   const { subject } = useParams();
   const [tests, setTests] = useState([]);
   const [loading, setLoading] = useState(true);
-  const dispatch = useDispatch();
   const [ fetchTestBySubject ] = useFetchTestBySubjectMutation();
   useEffect(() => {
     const fetchTests = async () => {
       try {
         const response = await fetchTestBySubject(subject).unwrap();
-        setTests(response.data);
+        setTests(response);
       } catch (error) {
         console.error('Error fetching tests:', error);
         toast.error('Error fetching tests. Please try again later.');
@@ -26,7 +24,7 @@ const TestList = () => {
     };
 
     fetchTests();
-  }, [subject]);
+  }, [subject , fetchTestBySubject ]);
 
   if (loading) {
     return <CircularProgress />;

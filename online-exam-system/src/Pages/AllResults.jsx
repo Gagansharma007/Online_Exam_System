@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { useViewTestMutation } from '../Slices/userApiSlice';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useFetchAllResultsMutation } from '../Slices/userApiSlice';
+import { useNavigate } from 'react-router-dom';
 import {
   CircularProgress,
   Container,
@@ -9,24 +9,24 @@ import {
   Box,
   Paper,
   Divider,
-  TableCell,
   Table,
   TableContainer,
   TableHead,
+  TableBody,
   TableRow,
-  TableBody
+  TableCell,
 } from '@mui/material';
 
-const Result = () => {
-  const { testId } = useParams();
+const AllResults = () => {
   const [results, setResults] = useState(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
-  const [ viewTest ] = useViewTestMutation();
+  const [fetchAllResults] = useFetchAllResultsMutation();
+
   useEffect(() => {
     const fetchResult = async () => {
       try {
-        const response = await viewTest(testId).unwrap();
+        const response = await fetchAllResults().unwrap();
         setResults(response);
       } catch (error) {
         console.error('Error fetching result:', error);
@@ -36,7 +36,7 @@ const Result = () => {
     };
 
     fetchResult();
-  }, [testId , viewTest ]);
+  }, [fetchAllResults]);
 
   useEffect(() => {
     window.onpopstate = () => {
@@ -112,4 +112,4 @@ const Result = () => {
   );
 };
 
-export default Result;
+export default AllResults;

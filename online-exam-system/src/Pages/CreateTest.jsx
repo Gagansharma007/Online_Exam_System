@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import axios from 'axios';
 import {
   Button,
   Container,
@@ -7,22 +6,19 @@ import {
   Typography,
   Grid,
   Paper,
-  IconButton,
   Radio,
-  FormControlLabel,
   FormGroup,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import { useNavigate } from 'react-router-dom';
-import { createTest } from '../Utils/APIRoutes';
-
+import { useCreateNewTestMutation } from '../Slices/userApiSlice';
 const CreateTest = () => {
   const navigate = useNavigate();
   const [title, setTitle] = useState('');
   const [subject, setSubject] = useState('');
   const [timeLimit, setTimeLimit] = useState('');
   const [questions, setQuestions] = useState([{ text: '', options: ['', '', '', ''], correctIndex: null }]);
-
+  const [ createNewTest ] = useCreateNewTestMutation();
   const handleAddQuestion = () => {
     setQuestions([...questions, { text: '', options: ['', '', '', ''], correctIndex: null }]);
   };
@@ -44,12 +40,12 @@ const CreateTest = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post(createTest, {
+      await createNewTest({
         title,
         subject,
         timeLimit,
         questions,
-      });
+      }).unwrap();
       navigate('/success');
     } catch (error) {
       console.error('Error creating test:', error);
@@ -69,7 +65,7 @@ const CreateTest = () => {
 
   return (
     <Container>
-      <Typography variant="h4">Create a New Test</Typography>
+      <Typography variant="h4" style={{marginTop: '30px'}}>Create a New Test</Typography>
       <form onSubmit={handleSubmit}>
         <TextField
           label="Test Title"
@@ -93,15 +89,15 @@ const CreateTest = () => {
           value={timeLimit}
           onChange={(e) => setTimeLimit(e.target.value)}
         />
-        <Button variant="contained" color="primary" onClick={handleAddQuestion} startIcon={<AddIcon />}>
-          Add Question
-        </Button>
+        
         {questions.map((question, qIndex) => (
           <Paper key={qIndex} style={{ marginTop: '16px', padding: '16px' }}>
             <TextField
               label={`Question ${qIndex + 1}`}
               fullWidth
               margin="normal"
+              multiline
+              rows={3}
               value={question.text}
               onChange={(e) => {
                 const updatedQuestions = questions.map((q, qi) =>
@@ -116,6 +112,7 @@ const CreateTest = () => {
                   <Grid item>
                     <TextField
                       label={`Option ${oIndex + 1}`}
+                      multiline
                       value={option}
                       onChange={(e) => handleOptionChange(qIndex, oIndex, e.target.value)}
                     />
@@ -131,9 +128,32 @@ const CreateTest = () => {
             </FormGroup>
           </Paper>
         ))}
-        <Button type="submit" variant="contained" color="primary" style={{ marginLeft: '20px' }} disabled={!isValidForm}>
+        <Grid container spacing={2}>
+      <Grid item>
+        <Button
+          variant="contained"
+          color="primary"
+          style={{ marginLeft: '20px' }}
+          onClick={handleAddQuestion}
+          startIcon={<AddIcon />}
+        >
+          Add Question
+        </Button>
+      </Grid>
+      <Grid item>
+        <Button
+          type="submit"
+          variant="contained"
+          color="primary"
+          style={{ marginLeft: '20px', marginBottom: '30px' }}
+          disabled={!isValidForm} 
+          onClick={handleSubmit}
+        >
           Create Test
         </Button>
+      </Grid>
+    </Grid>
+
       </form>
     </Container>
   );

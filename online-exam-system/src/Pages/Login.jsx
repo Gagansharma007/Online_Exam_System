@@ -13,7 +13,7 @@ const Login = () => {
     password: "",
   });
   const [ login , { isLoading }] = useLoginMutation();
-  const { userInfo } = useSelector(state=> state.root.auth);
+  const { userInfo } = useSelector(state=> state.auth);
   useEffect(()=>{
     if( userInfo ){
       navigate('/');

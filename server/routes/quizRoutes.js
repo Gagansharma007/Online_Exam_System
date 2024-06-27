@@ -5,6 +5,7 @@ const router = express.Router();
 
 const {
   createTest,
+  getResultById,
   getAllTests,
   getTestsBySubject,
   getTestById,
@@ -33,7 +34,9 @@ router.get('/canstart/:testId', protect, canStartTest);
 router.post('/submit', protect, submitTestResults);
 
 // Route to fetch the result of a specific test for the logged-in user
-router.get('/result/:testId', protect, getResult);
+router.get('/results/:testId', protect, getResult);
+
+router.get('/result/:resultId', protect, getResultById );
 
 // Route to fetch all previous results for the logged-in user
 router.get('/user/results', protect, getUserResults);

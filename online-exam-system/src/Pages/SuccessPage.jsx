@@ -1,37 +1,17 @@
-import React, { useState , useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { Container, Typography, Button, Box } from '@mui/material';
+import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import { authMe } from '../Utils/APIRoutes';
-import { toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
 
 const SuccessPage = () => {
   const navigate = useNavigate();
-  const [currentUser, setCurrentUser] = useState(undefined);
-  const [isLoaded, setIsLoaded] = useState(false);
+  const { userInfo } = useSelector( state => state.auth );
 
   useEffect(() => {
-      const fetchData = async () => {
-          try {
-              const token = document.cookie.split('; ').find(row => row.startsWith('token='));
-              if (!token) {
-                  navigate('/login');
-              } else {
-                  const { data } = await axios.get( authMe , {
-                      headers: { Authorization: `Bearer ${token.split('=')[1]}` }
-                  });
-                  setCurrentUser(data.user);
-                  setIsLoaded(true);
-              }
-          } catch (error) {
-              console.error("Error fetching user data:", error);
-              toast.error("An error occurred. Please try again later.");
-          }
-      };
-
-      fetchData();
-  }, [navigate]);
+    if( !userInfo ){
+      navigate('/login');
+    }
+  }, [navigate , userInfo]);
 
   return (
     <Box>

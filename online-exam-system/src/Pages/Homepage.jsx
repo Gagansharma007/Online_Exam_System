@@ -1,15 +1,13 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Box, Container, Typography, Grid, CircularProgress, Button } from '@mui/material';
-import { useSelector, useDispatch } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { useFetchAllSubjectsMutation } from '../Slices/userApiSlice';
-import { allSubjects, setSelectedSubject } from '../Slices/testSlice';
 
 const Homepage = () => {
   const navigate = useNavigate();
-  const userInfo = useSelector( state => state.root.auth.userInfo );
-  const { subjects } = useSelector( state => state.root.test );
-  const dispatch = useDispatch();
+  const userInfo = useSelector( state => state.auth.userInfo );
+  const [ subjects , setSubjects ] = useState(null);
   const [ fetchAllSubjects ] = useFetchAllSubjectsMutation();
   const [ loading , setLoading ] = useState(true);
   useEffect(() => {
@@ -22,7 +20,7 @@ const Homepage = () => {
     const fetchSubjects = async () => {
       try {
         const response = await fetchAllSubjects().unwrap();
-        dispatch(allSubjects(response));
+        setSubjects(Array.from( new Set(response.map(test => test.subject))));
       } catch (error) {
         console.error('Error fetching subjects:', error);
       } finally {
@@ -31,9 +29,8 @@ const Homepage = () => {
     };
 
     fetchSubjects();
-  }, [ fetchAllSubjects, dispatch ]);
+  }, [ fetchAllSubjects ]);
   const handleSelectedSubject = (subject)=>{
-    dispatch(setSelectedSubject(subject));
     navigate(`/test/${subject}`);
   }
   if (loading ) {

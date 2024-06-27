@@ -9,7 +9,7 @@ import { setCredentials } from '../Slices/authSlice';
 const Register = () => {
     const navigate = useNavigate();
     const dispatch = useDispatch();
-    const { userInfo } = useSelector(state => state.root.auth );
+    const { userInfo } = useSelector(state => state.auth );
     const [ values , setValues ] = useState({
         username : "",
         email: "",

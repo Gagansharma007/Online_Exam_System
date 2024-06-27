@@ -26,6 +26,14 @@ export const userApiSlice = apiSlice.injectEndpoints({
                 credentials: 'include',
             }),
         }),
+        createNewTest: builder.mutation({
+            query: (data) => ({
+                url: `${USERS_URL}/test/create`,
+                method: 'POST',
+                body: data, 
+                credentials: 'include',
+            }),
+        }),
         fetchAllSubjects: builder.mutation({
             query: ()=>({
                 url : `${USERS_URL}/test`,
@@ -40,6 +48,49 @@ export const userApiSlice = apiSlice.injectEndpoints({
                 credentials: 'include'
             }),
         }),
+        fetchTestById : builder.mutation({
+            query: (id) => ({
+                url : `${USERS_URL}/test/${id}`,
+                method: 'GET',
+                credentials: 'include',
+            }),
+        }),
+        startTest : builder.mutation({
+            query: (id) => ({
+                url: `${USERS_URL}/test/canstart/${id}`,
+                method: 'GET',
+                credentials: 'include',
+            }),
+        }),
+        fetchAllResults : builder.mutation({
+            query : () => ({
+                url : `${USERS_URL}/test/user/results`,
+                method: 'GET',
+                credentials: 'include',
+            }),
+        }),
+        viewTest: builder.mutation({
+            query: (id) => ({
+                url : `${USERS_URL}/test/results/${id}`,
+                method: 'GET',
+                credentials: 'include',
+            }),
+        }),
+        getResultById : builder.mutation({
+            query: (id) => ({
+                url : `${USERS_URL}/test/result/${id}`,
+                method: 'GET',
+                credentials: 'include',
+            })
+        }),
+        submitTest: builder.mutation({
+            query: (data)=>({
+                url: `${USERS_URL}/test/submit`,
+                method:'POST',
+                body: data,
+                credentials : 'include',
+            })
+        })
         // updateUser: builder.mutation({
         //     query: (data)=>({
         //         url: `${USERS_URL}/users/profile`,
@@ -79,8 +130,15 @@ export const {
     useLoginMutation, 
     useLogoutMutation,
     useRegisterMutation,
+    useCreateNewTestMutation,
     useFetchAllSubjectsMutation,
     useFetchTestBySubjectMutation,
+    useFetchTestByIdMutation,
+    useStartTestMutation,
+    useFetchAllResultsMutation,
+    useViewTestMutation,
+    useSubmitTestMutation,
+    useGetResultByIdMutation,
     // useUpdateUserMutation,
     // useFetchAllUsersMutation,
     // useFetchChatMessagesMutation,
