@@ -26,7 +26,7 @@ const Header = () => {
     <AppBar position="static">
             <Toolbar>
                 <Typography variant="h6" component="div" sx={{ flexGrow: 1, cursor: 'pointer' }} onClick={handleHomeClick}>
-                    Online Exam System
+                    Online Test System
                 </Typography>
                 <IconButton color="inherit" sx={{ marginRight : '20px' }} onClick={handleHomeClick}>
                     <HomeIcon />
